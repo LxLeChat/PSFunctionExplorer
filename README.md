@@ -12,7 +12,7 @@ I used classes to write my script... Why ? Cause CLASSES are AWSOME !
 
 I prefere to use the ```-ExcludePSCmdlets``` to not discover basic powershell commands.
 
--```Write-FUFunctionDiagram``` will draw a graph of dependencies. Just check the ![examples](/example) ...
+-```Write-FUFunctionDiagram``` will draw a graph of dependencies. Just check the ![Example](/Example) ...
 You will need the awsome PSGRAPH Module!
 
 # Why i did it
