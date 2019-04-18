@@ -12,10 +12,14 @@ I used classes to write my script... Why ? Cause CLASSES are AWSOME !
 
 I prefere to use the ```-ExcludePSCmdlets``` to not discover basic powershell commands.
 
-```Write-FUFunctionDiagram``` will draw a graph of dependencies. Just check the ![OutPut](https://github.com/LxLeChat/PSFunctionExplorer/blob/master/Example/) ...
+```Write-FUFunctionDiagram``` will draw a graph of dependencies. Just check the ![Examples](./blob/master/Example) ...
 You will need the awsome PSGRAPH Module!
 On my Own psm1 file:
 ![Graph1](https://github.com/LxLeChat/PSFunctionExplorer/blob/master/Example/module_psfunctionexplorer.png)
+
+Red node(s): The function has a dependency, to ..well follow the line :)
+Green node(s): Standalone function !
+Black node(s): External function, in this example: graph, node, edge and export-psgraph are imported function from PSGRAPH.
 
 # Why i did it
 I've tasked to study a huuuuuuge module, with no comment, no documentation etc... It helped me understand how each functions interacts with one another.
