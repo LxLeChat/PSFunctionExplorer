@@ -19,4 +19,4 @@ You will need the awsome PSGRAPH Module!
 I've tasked to study a huuuuuuge module, with no comment, no documentation etc... It helped me understand how each functions interacts with one another.
 
 # Inspiration
-Thanks to @stephanVG who inspired me to create this module!
+Thanks to @stephanevg who inspired me to create this module! https://github.com/Stephanevg/PSClassUtils
