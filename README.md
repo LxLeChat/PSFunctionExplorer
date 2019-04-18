@@ -1,24 +1,20 @@
-# PS-Module-Functions-Dependency
-Snippet to help find functions interaction within a PS Module
+# PSFunctionExplorer
+A small set of functions to discover function(s) declaration(s), and their inner commands using AST and draw graph dependecy.
 
 # How it works
-First i exclude all "standard" cmdlets. (variable b)
-dont forget to change the path of the folder containing your functions.
-then i use ast to create an arraylist containing all the cmdlets i find in every file available under the specific path.
-This better works in a well organized module. (One file, one function..., i'm currently in the process of doing something more awesome!)
-at the end of the first loop you have ArrayOfFunctions, that contains all functions, and what functions are called inside their code.
+I simply use the AST (Abstract Syntax Tree) to discover ```FunctionDefinitionsTypes``` inside the ps1/psm1 file and ```CommandAst``` types inside each function.
+I used classes to write my script... Why ? Cause CLASSES are AWSOME !
 
-You can stop their if you want, or you can pass ArrayOfFunctions to PSGraph to generate a Graph :)
+# Available Functions
+```Find-FUFunction``` will help you find all function(s) declaration(s) within ps1/psm1 file(s). For each discovered function, the function will also find every commands within this function. It will output a custom ```FUScriptFile``` type. Expand the Functions property to find commands.
+```Find-FUFunction -path .\yourpsm1file.psm1 | Select-Object -ExpandProperty Functions```
+I prefere to use the ```-ExcludePSCmdlets``` to not discover basic powershell commands.
 
-Red nodes => dependent functions
-
-Green nodes => standalon function
-
-use: -OutPutForm pdf, with show-psgraph, if you want to search the graph!
+```Write-FUFunctionDiagram``` will draw a graph of dependencies. Just check the ![examples](/examples) ...
+You will need the awsome PSGRAPH Module!
 
 # Why i did it
-I've tasked to study a huuuuuuge module, with no comment, no documentation etc...
+I've tasked to study a huuuuuuge module, with no comment, no documentation etc... It helped me understand how each functions interacts with one another.
 
-# Example
-Done on @lazyadmin ADSIPS Module https://github.com/lazywinadmin/AdsiPS
-![OutPut](/ADSIPS.png)
+# Inspiration
+Thanks to @stephanVG who inspired me to create this module!
