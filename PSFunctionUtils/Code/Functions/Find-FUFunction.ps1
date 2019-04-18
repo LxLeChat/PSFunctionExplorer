@@ -1,4 +1,4 @@
-Function Find-CUFunction {
+Function Find-FUFunction {
     <#
     .SYNOPSIS
         Find All Functions declaration inside a ps1/psm1 file and their inner commands.
@@ -8,7 +8,7 @@ Function Find-CUFunction {
         The function property contains all the function declaration found in the file.
         The funcrion property of type CUFunction is composed of a set of 2 proeprties. The name of the function and the commands found inside the function.
     .EXAMPLE
-        PS C:\> $a = Find-CUFunction -path c:\PSclassutils\PSClassutils.psm1
+        PS C:\> $a = Find-FUFunction -path c:\PSclassutils\PSClassutils.psm1
         PS C:\> $a
         Name              FullName                                                         Functions
         ----              --------                                                         ---------
@@ -38,7 +38,7 @@ Function Find-CUFunction {
         Write-CUInterfaceImplementation {}
         Write-CUPesterTest              {gci, Get-CUClass, Get-Item, Group-Object...}
     .EXAMPLE
-        PS C:\> $a = Find-CUFunction -path c:\PSclassutils\PSClassutils.psm1 -ExcludePSCmdlets
+        PS C:\> $a = Find-FUFunction -path c:\PSclassutils\PSClassutils.psm1 -ExcludePSCmdlets
         PS C:\> $a
         Name              FullName                                                         Functions
         ----              --------                                                         ---------
@@ -93,8 +93,8 @@ Function Find-CUFunction {
         ForEach( $p in $Path) {
             $item = get-item (resolve-path -path $p).path
             If ( $item -is [system.io.FileInfo] -and $item.Extension -in @('.ps1','.psm1') ) {
-                Write-Verbose ("[CUFunction]Analyzing {0} ..." -f $item.FullName)
-                $t = [CuScriptFile]::new($item.FullName)
+                Write-Verbose ("[FUFunction]Analyzing {0} ..." -f $item.FullName)
+                $t = [FUScriptFile]::new($item.FullName)
                 If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
                     $t.GetFunctions($ToExclude)
                 } else {

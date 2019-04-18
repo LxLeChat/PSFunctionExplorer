@@ -1,17 +1,17 @@
-class CUFunction {
+class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
     hidden $RawFunctionAST
 
-    CuFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw) {
         $this.RawFunctionAST = $Raw
-        $this.name = [CUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.GetCommands()
     }
 
-    CuFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList) {
         $this.RawFunctionAST = $Raw
-        $this.name = [CUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.GetCommands($ExclusionList)
     }
 
@@ -21,7 +21,7 @@ class CUFunction {
         If ( $t.Count -gt 0 ) {
             ## si elle existe deja, on ajotue juste à ces commands
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
-                $Command = [CUUtility]::ToTitleCase($_)
+                $Command = [FUUtility]::ToTitleCase($_)
                 $this.Commands.Add($Command)
             })
         }
@@ -33,7 +33,7 @@ class CUFunction {
         $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
-                $Command = [CUUtility]::ToTitleCase($_)
+                $Command = [FUUtility]::ToTitleCase($_)
                 If ( $ExclusionList -notcontains $Command) {
                     $this.Commands.Add($Command)
                 }
@@ -42,15 +42,15 @@ class CUFunction {
     }
 }
 
-Class CUScriptFile {
+Class FUScriptFile {
     $Name
     $FullName
-    [CUFunction[]]$Functions
+    [FUFunction[]]$Functions
     hidden $RawASTContent
     hidden $RawASTDocument
     hidden $RawFunctionAST
     
-    CUScriptFile ($path){
+    FUScriptFile ($path){
         $this.FullName = $path
         $this.Name = ([System.IO.FileInfo]$path).Name
         $this.RawASTContent = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$Null)
@@ -68,46 +68,21 @@ Class CUScriptFile {
 
     GetFunctions(){
         Foreach ( $Function in $this.RawFunctionAST ) {
-            
-            $this.Functions += [CUFunction]::New($function)
+            $this.Functions += [FUFunction]::New($function)
         }
     }
 
     ## GetFunctions Overload, with ExclustionList
     GetFunctions($ExclusionList){
         Foreach ( $Function in $this.RawFunctionAST ) {
-            $this.Functions += [CUFunction]::New($function,$ExclusionList)
+            $this.Functions += [FUFunction]::New($function,$ExclusionList)
         }
     }
 
 }
 
-Class CUUtility {
+Class FUUtility {
     Static [String]ToTitleCase ([string]$String){
         return (Get-Culture).TextInfo.ToTitleCase($String.ToLower())
-    }
-}
-
-## https://powershellexplained.com/2017-02-20-Powershell-creating-parameter-validators-and-transforms/
-## in the function params : [PathTransformAttribute()] not [PathTransform()] ==> thanks @vexx32 aka @joel!
-## not using it ...
-class PathTransformAttribute : System.Management.Automation.ArgumentTransformationAttribute
-{
-    [object] Transform([System.Management.Automation.EngineIntrinsics]$engineIntrinsics, [object] $inputData)
-    {
-            Write-Verbose "[PathTransformAttribute]: $inputData"
-            If ( $inputData -is [string] ) {
-                    $fullPath = Resolve-Path -Path $inputData -ErrorAction SilentlyContinue
-                    $inputData = $fullPath
-                    return $inputData.Path
-            }
-            
-            If ( $inputData -is [System.IO.FileInfo] -or $inputData -is [System.IO.DirectoryInfo] ) {
-                $inputData = Resolve-Path -Path $inputData -ErrorAction SilentlyContinue
-                return $inputData.Path
-            }
-
-            
-            throw [System.IO.FileNotFoundException]::new()
     }
 }

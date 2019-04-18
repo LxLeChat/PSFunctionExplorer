@@ -1,17 +1,17 @@
-class CUFunction {
+class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
     hidden $RawFunctionAST
 
-    CuFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw) {
         $this.RawFunctionAST = $Raw
-        $this.name = [CUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.GetCommands()
     }
 
-    CuFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList) {
         $this.RawFunctionAST = $Raw
-        $this.name = [CUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.GetCommands($ExclusionList)
     }
 
@@ -21,7 +21,7 @@ class CUFunction {
         If ( $t.Count -gt 0 ) {
             ## si elle existe deja, on ajotue juste à ces commands
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
-                $Command = [CUUtility]::ToTitleCase($_)
+                $Command = [FUUtility]::ToTitleCase($_)
                 $this.Commands.Add($Command)
             })
         }
@@ -33,7 +33,7 @@ class CUFunction {
         $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
-                $Command = [CUUtility]::ToTitleCase($_)
+                $Command = [FUUtility]::ToTitleCase($_)
                 If ( $ExclusionList -notcontains $Command) {
                     $this.Commands.Add($Command)
                 }
@@ -42,16 +42,15 @@ class CUFunction {
     }
 }
 
-Class CUScriptFile {
+Class FUScriptFile {
     $Name
     $FullName
-    [CUFunction[]]$Functions
-    $InnerCommands
+    [FUFunction[]]$Functions
     hidden $RawASTContent
     hidden $RawASTDocument
     hidden $RawFunctionAST
     
-    CUScriptFile ($path){
+    FUScriptFile ($path){
         $this.FullName = $path
         $this.Name = ([System.IO.FileInfo]$path).Name
         $this.RawASTContent = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$Null)
@@ -69,26 +68,26 @@ Class CUScriptFile {
 
     GetFunctions(){
         Foreach ( $Function in $this.RawFunctionAST ) {
-            $this.Functions += [CUFunction]::New($function)
+            $this.Functions += [FUFunction]::New($function)
         }
     }
 
     ## GetFunctions Overload, with ExclustionList
     GetFunctions($ExclusionList){
         Foreach ( $Function in $this.RawFunctionAST ) {
-            $this.Functions += [CUFunction]::New($function,$ExclusionList)
+            $this.Functions += [FUFunction]::New($function,$ExclusionList)
         }
     }
 
 }
 
-Class CUUtility {
+Class FUUtility {
     Static [String]ToTitleCase ([string]$String){
         return (Get-Culture).TextInfo.ToTitleCase($String.ToLower())
     }
 }
 
-Function Find-CUFunction {
+Function Find-FUFunction {
     <#
     .SYNOPSIS
         Find All Functions declaration inside a ps1/psm1 file and their inner commands.
@@ -98,7 +97,7 @@ Function Find-CUFunction {
         The function property contains all the function declaration found in the file.
         The funcrion property of type CUFunction is composed of a set of 2 proeprties. The name of the function and the commands found inside the function.
     .EXAMPLE
-        PS C:\> $a = Find-CUFunction -path c:\PSclassutils\PSClassutils.psm1
+        PS C:\> $a = Find-FUFunction -path c:\PSclassutils\PSClassutils.psm1
         PS C:\> $a
         Name              FullName                                                         Functions
         ----              --------                                                         ---------
@@ -128,7 +127,7 @@ Function Find-CUFunction {
         Write-CUInterfaceImplementation {}
         Write-CUPesterTest              {gci, Get-CUClass, Get-Item, Group-Object...}
     .EXAMPLE
-        PS C:\> $a = Find-CUFunction -path c:\PSclassutils\PSClassutils.psm1 -ExcludePSCmdlets
+        PS C:\> $a = Find-FUFunction -path c:\PSclassutils\PSClassutils.psm1 -ExcludePSCmdlets
         PS C:\> $a
         Name              FullName                                                         Functions
         ----              --------                                                         ---------
@@ -183,8 +182,8 @@ Function Find-CUFunction {
         ForEach( $p in $Path) {
             $item = get-item (resolve-path -path $p).path
             If ( $item -is [system.io.FileInfo] -and $item.Extension -in @('.ps1','.psm1') ) {
-                Write-Verbose ("[CUFunction]Analyzing {0} ..." -f $item.FullName)
-                $t = [CuScriptFile]::new($item.FullName)
+                Write-Verbose ("[FUFunction]Analyzing {0} ..." -f $item.FullName)
+                $t = [FUScriptFile]::new($item.FullName)
                 If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
                     $t.GetFunctions($ToExclude)
                 } else {
@@ -199,13 +198,34 @@ Function Find-CUFunction {
     }
 }
 
-Function Write-CUFunctionGraph {
+Function Write-FUFunctionGraph {
+    <#
+    .SYNOPSIS
+        Generate dependecy graph for a function or a set of functions found in a ps1/psm1 file.
+    .DESCRIPTION
+        Generate dependecy graph for a function or a set of functions found in a ps1/psm1 file.
+    .EXAMPLE
+        tbd
+    .INPUTS
+        FullName Path. Accepts pipeline inputs.
+    .OUTPUTS
+        Outputs Graph, thanks to psgraph module.
+    .NOTES
+        First Draft. For the moment the function only output graphviz datas. Soon you ll be able to generate a nice graph as a png, pdf ...
+    #>
     [CmdletBinding()]
     param (
         [Alias("FullName")]
         [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
         [string[]]$Path,
-        [Switch]$ExcludePSCmdlets
+        [Switch]$ExcludePSCmdlets,
+        [System.IO.FileInfo]$ExportPath,
+        [ValidateSet('pdf',"png")]
+        [String]$OutPutFormat,
+        [ValidateSet('dot','circo','hierarchical')]
+        [String]$LayoutEngine,
+        [Switch]$ShowGraph,
+        [Switch]$PassThru
     )
     
     begin {
@@ -217,16 +237,24 @@ Function Write-CUFunctionGraph {
             $item = get-item (resolve-path -path $p).path
             If ( $item -is [system.io.FileInfo] -and $item.Extension -in @('.ps1','.psm1') ) {
                 If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
-                    $results += Find-CUFunction -Path $item -ExcludePSCmdlets
-                } else {
-                    $results += Find-CUFunction -Path $item
+                    $results += Find-FUFunction -Path $item -ExcludePSCmdlets
+                } Else {
+                    $results += Find-FUFunction -Path $item
                 }
             }
         }
     }
     
     end {
-        graph depencies @{rankdir='LR'}{
+
+        $ExportAttrib = @{
+            DestinationPath = If ( $null -eq $PSBoundParameters['ExportPath']) {$pwd.Path+'\'+[system.io.path]::GetRandomFileName().split('.')[0]+'.png'} Else {$PSBoundParameters['ExportPath']}
+            OutPutFormat    = If ( $null -eq $PSBoundParameters['OutPutFormat']) {'png'} Else { $PSBoundParameters['OutPutFormat'] }
+            LayoutEngine    = If ( $null -eq $PSBoundParameters['LayoutEngine']) {'dot'} Else { $PSBoundParameters['LayoutEngine'] }
+            ShowGraph    = If ( $null -eq $PSBoundParameters['ShowGraph']) {$False} Else { $True }
+        }
+
+        $graph = graph depencies @{rankdir='LR'}{
             Foreach ( $t in $($results | Select-Object -ExpandProperty Functions) ) {
                 If ( $t.commands.count -gt 0 ) {
                         node -Name $t.name -Attributes @{Color='red'}
@@ -240,6 +268,11 @@ Function Write-CUFunctionGraph {
                     }
                 }
             }
+        } 
+        If ( $PassThru ) { 
+            $graph
         }
+        
+        $graph | export-PSGraph @ExportAttrib
     }
 }
