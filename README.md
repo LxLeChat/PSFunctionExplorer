@@ -27,3 +27,7 @@ I've tasked to study a huuuuuuge module, with no comment, no documentation etc..
 # Inspiration
 Thanks to @stephanevg who inspired me to create this module!
 His Github: https://github.com/Stephanevg/
+
+PSHTML Graph:
+
+![Awsome PSHTML](https://github.com/LxLeChat/PSFunctionExplorer/blob/master/Example/module_pshtml2.png)
