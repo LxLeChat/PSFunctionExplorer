@@ -49,7 +49,7 @@ You have every function declaration discovered in the psclassutils.psm1 file, an
 
 ### Write-FUFunctionDiagram
 ```Write-FUFunctionDiagram``` will draw a graph of dependencies. Just check the [Examples](./Example) ...
-You will need the awsome PSGRAPH Module!..
+You will need the awsome [PSGraph](https://github.com/KevinMarquette/PSGraph) Module!..
 PSFunctionExplore.psm1 file:..
 
 ![Graph1](https://github.com/LxLeChat/PSFunctionExplorer/blob/master/Example/module_psfunctionexplorer.png)
