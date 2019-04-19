@@ -64,7 +64,7 @@ On my Own psm1 file:..
 * ```-OutPutFormat``` File output format available @ the moment ```pdf, png```. Default is ```png```
 * ```-LayoutEngine``` Layout engine used by graphviz to generate the graph. Available @ the moment ```dot, circo, hierarchical```. Default ```dot```
 * ```-ShowGraph``` Display the graph when it's generated
-* ```-PassThrue``` Display graph data. Can be used on http://www.webgraphviz.com/ or http://viz-js.com/ for example
+* ```-PassThru``` Display graph data. Can be used on http://www.webgraphviz.com/ or http://viz-js.com/ for example
 
 # Why i did it
 I've tasked to study a huuuuuuge module, with no comment, no documentation etc... It helped me understand how each functions interacts with one another.
