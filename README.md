@@ -52,7 +52,7 @@ You have every function declaration discovered in the psclassutils.psm1 file, an
 You will need the awsome PSGRAPH Module!..
 PSFunctionExplore.psm1 file:..
 
-[Graph1](https://github.com/LxLeChat/PSFunctionExplorer/blob/master/Example/module_psfunctionexplorer.png)
+![Graph1](https://github.com/LxLeChat/PSFunctionExplorer/blob/master/Example/module_psfunctionexplorer.png)
 
 * Red node(s): The function has a dependency, to ..well follow the line :)..
 * Green node(s): Standalone function !..
