@@ -1,47 +1,41 @@
 # PSFunctionExplorer
 A small set of functions to discover function(s) declaration(s), and their inner commands using AST and draw graph dependecy.
 
+FU* Stands for Function Utility :p
+
 # How it works
 I simply use the AST (Abstract Syntax Tree) to discover ```FunctionDefinitionsTypes``` inside the ps1/psm1 file and ```CommandAst``` types inside each function.
 I used classes to write my script... Why ? Cause CLASSES are AWSOME !
 
 # Available Functions
 ### Find-FUFunction
-```Find-FUFunction``` will help you find all function(s) declaration(s) within ps1/psm1 file(s). For each discovered function, the function will also find every commands within this function. It will output a custom ```FUScriptFile``` type. Expand the Functions property to find commands...
+```Find-FUFunction``` will help you find all function(s) declaration(s) within ps1/psm1 file(s). For each discovered function, the function will also find every commands within this function. It will output a custom ```FUFunction``` type. Expand the Functions property to find commands...
 
-```PS >Find-FUFunction -Path ..\..\PSClassUtils\PSClassUtils\PSClassUtils.psm1 -ExcludePSCmdlets
-Name              FullName                                                               Functions
-----              --------                                                               ---------
-PSClassUtils.psm1 C:\Users\pchasles\GitPerso\PSClassUtils\PSClassUtils\PSClassUtils.psm1 {Convertto-Titlecase, Find-Cuclass, Get-Cuast, New-Cugraphexport...}
+```PS >Find-FUFunction -Path ..\..\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Name                            Commands                                                     Path
+----                            --------                                                     ----
+Convertto-Titlecase             {Get-Culture}                                                C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Find-Cuclass                    {Write-Verbose, Get-Childitem, Get-Cuclass, Where-Object...} C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Get-Cuast                       {Write-Verbose}                                              C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+New-Cugraphexport               {Join-Path, Export-Psgraph}                                  C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+New-Cugraphparameters           {Out-Cupsgraph}                                              C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Out-Cupsgraph                   {Write-Verbose, Get-Module, Get-Module, Import-Module...}    C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Get-Cuclass                     {Get-Item, Resolve-Path, Get-Cuast, Get-Culoadedclass}       C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Get-Cuclassconstructor          {Get-Item, Resolve-Path, Get-Cuclass}                        C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Get-Cuclassmethod               {Where-Object, Get-Item, Resolve-Path, Get-Cuclass}          C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Get-Cuclassproperty             {Get-Cuclass}                                                C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Get-Cucommands                  {Get-Command}                                                C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Get-Cuenum                      {Throw, Get-Cuast, ?}                                        C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Get-Culoadedclass               {Where-Object, Foreach-Object, Select-Object, Get-Cuast}     C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Get-Curaw                       {Get-Item, Resolve-Path}                                     C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Install-Cudiagramprerequisites  {Get-Module, Get-Module, Write-Verbose, Install-Module...}   C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Test-Iscustomtype               {Where}                                                      C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Write-Cuclassdiagram            {Test-Path, New-Object, Get-Item, Get-Childitem...}          C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Write-Cuinterfaceimplementation {}                                                           C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+Write-Cupestertest              {Gci, Get-Cuclass, Get-Item, Group-Object...}                C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+
 ```
-Now if we expand the functions property
-```
-PS >Find-FUFunction -Path ..\..\PSClassUtils\PSClassUtils\PSClassUtils.psm1 -ExcludePSCmdlets | select-Object -Expandproperty Functions
-Name                           Commands
-----                           --------
-Convertto-Titlecase            {}
-Find-Cuclass                   {Get-Cuclass}
-Get-Cuast                      {}
-New-Cugraphexport              {Export-Psgraph}
-New-Cugraphparameters          {Out-Cupsgraph}
-Out-Cupsgraph                  {Graph, Subgraph, Convertto-Titlecase, Record...}
-Get-Cuclass                    {Get-Cuast, Get-Culoadedclass}
-Get-Cuclassconstructor         {Get-Cuclass}
-Get-Cuclassmethod              {Get-Cuclass}
-Get-Cuclassproperty            {Get-Cuclass}
-Get-Cucommands                 {}
-Get-Cuenum                     {Throw, Get-Cuast}
-Get-Culoadedclass              {Get-Cuast}
-Get-Cupesterdescribeblock      {Get-Cupesteritblock}
-Get-Cupesteritblock            {}
-Get-Cupesterscript             {Get-Cupesterdescribeblock}
-Get-Curaw                      {}
-Install-Cudiagramprerequisites {Install-Module, Install-Graphviz}
-Test-Iscustomtype              {}
-Write-Cuclassdiagram           {Find-Cuclass, New-Cugraphparameters, New-Cugraphexport}
-Write-Cupestertests            {Get-Cuclass}
-```
-You have every function declaration discovered in the psclassutils.psm1 file, and for each function declaration, all its internal commands.
+You have every function declaration discovered in the psclassutils.psm1 file for the magnificient [PSCLASSUTILS](https://github.com/stephanevg/Psclassutils) module and for each function declaration, all its internal commands.
 
 #### Find-FUFunction Parameters
 * ```-Path``` fullpath of a ps1/psm1 file, accept values from the pipeline...

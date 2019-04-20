@@ -55,7 +55,7 @@ Function Write-FUFunctionGraph {
         }
 
         $graph = graph depencies @{rankdir='LR'}{
-            Foreach ( $t in $($results | Select-Object -ExpandProperty Functions) ) {
+            Foreach ( $t in $results ) {
                 If ( $t.commands.count -gt 0 ) {
                         node -Name $t.name -Attributes @{Color='red'}
                 } Else {

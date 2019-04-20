@@ -1,21 +1,24 @@
 class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
+    $Path
     hidden $RawFunctionAST
 
-    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$Path) {
         $this.RawFunctionAST = $Raw
         $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.Path = $path
         $this.GetCommands()
     }
 
-    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList,$Path) {
         $this.RawFunctionAST = $Raw
-        $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.Name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.Path = $path
         $this.GetCommands($ExclusionList)
     }
 
-    GetCommands () {
+    hidden GetCommands () {
 
         $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
@@ -28,7 +31,7 @@ class FUFunction {
     }
 
     ## Overload
-    GetCommands ($ExclusionList) {
+    hidden GetCommands ($ExclusionList) {
 
         $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
@@ -42,49 +45,38 @@ class FUFunction {
     }
 }
 
-Class FUScriptFile {
-    $Name
-    $FullName
-    [FUFunction[]]$Functions
-    hidden $RawASTContent
-    hidden $RawASTDocument
-    hidden $RawFunctionAST
-    
-    FUScriptFile ($path){
-        $this.FullName = $path
-        $this.Name = ([System.IO.FileInfo]$path).Name
-        $this.RawASTContent = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$Null)
-        $this.GetRawFunctions()
-    }
-
-    hidden GetRawFunctions() {
-        $this.RawASTDocument = $this.RawASTContent.FindAll({$args[0] -is [System.Management.Automation.Language.Ast]}, $true)
-        If ( $this.RawASTDocument.Count -gt 0 ) {
-            ## We want to exclude Classes, so we check if the parent of the current function is not a functionmemberast type
-            ## source: https://stackoverflow.com/questions/45929043/get-all-functions-in-a-powershell-script/45929412
-            $this.RawFunctionAST = $this.RawASTDocument.FindAll({$args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $($args[0].parent) -isnot [System.Management.Automation.Language.FunctionMemberAst] })
-        }
-    }
-
-    GetFunctions(){
-        Foreach ( $Function in $this.RawFunctionAST ) {
-            $this.Functions += [FUFunction]::New($function)
-        }
-    }
-
-    ## GetFunctions Overload, with ExclustionList
-    GetFunctions($ExclusionList){
-        Foreach ( $Function in $this.RawFunctionAST ) {
-            $this.Functions += [FUFunction]::New($function,$ExclusionList)
-        }
-    }
-
-}
-
 Class FUUtility {
+
+    ## Static Method to TitleCase
     Static [String]ToTitleCase ([string]$String){
         return (Get-Culture).TextInfo.ToTitleCase($String.ToLower())
     }
+
+    ## Static Method to return Function in AST Form, exclude classes
+    [Object[]] static GetRawASTFunction($Path) {
+
+        $RawFunctions   = $null
+        $ParsedFile     = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$Null)
+        $RawAstDocument = $ParsedFile.FindAll({$args[0] -is [System.Management.Automation.Language.Ast]}, $true)
+
+        If ( $RawASTDocument.Count -gt 0 ) {
+            ## source: https://stackoverflow.com/questions/45929043/get-all-functions-in-a-powershell-script/45929412
+            $RawFunctions = $RawASTDocument.FindAll({$args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $($args[0].parent) -isnot [System.Management.Automation.Language.FunctionMemberAst] })
+        }
+
+        return $RawFunctions
+    }
+
+    ## GetFunction, return [FuFunction]
+    [FUFunction] Static GetFunction($RawASTFunction,$path){
+        return [FUFunction]::New($RawASTFunction,$path)
+    }
+
+    ## GetFunctions Overload, with ExclustionList, return [FuFunction]
+    [FUFunction] Static GetFunction($RawASTFunction,$Exculde,$path){
+        return [FUFunction]::New($RawASTFunction,$Exculde,$path)
+    }
+
 }
 
 Function Find-FUFunction {
@@ -93,73 +85,28 @@ Function Find-FUFunction {
         Find All Functions declaration inside a ps1/psm1 file and their inner commands.
     .DESCRIPTION
         Find All Functions declaration inside a ps1/psm1 file.
-        Return an object describing a powershell file of type CUScriptFile.
-        The function property contains all the function declaration found in the file.
-        The funcrion property of type CUFunction is composed of a set of 2 proeprties. The name of the function and the commands found inside the function.
+        Return an object describing a powershell function. Output a custom type: FUFunction.
     .EXAMPLE
-        PS C:\> $a = Find-FUFunction -path c:\PSclassutils\PSClassutils.psm1
-        PS C:\> $a
-        Name              FullName                                                         Functions
-        ----              --------                                                         ---------
-        PSClassUtils.psm1 C:\PSclassutils\PSClassutils.psm1                                {ConvertTo-titleCase, Find-CUClass, Get-CUAst, New-CUGraphExport...}
+        PS C:\> Find-FUFunction .\PSFunctionExplorer.psm1
 
-        If we examine closer the functions property
-        PS C:\> $a.Functions
-        Name                            Commands
-        ----                            --------
-        ConvertTo-titleCase             {Get-Culture}
-        Find-CUClass                    {Write-Verbose, Get-ChildItem, Get-CUCLass, Where-Object...}
-        Get-CUAst                       {Write-Verbose}
-        New-CUGraphExport               {Join-Path, Export-PSGraph}
-        New-CUGraphParameters           {Out-CUPSGraph}
-        Out-CUPSGraph                   {Get-Module, get-module, Import-Module, Group...}
-        Get-CUClass                     {Get-Item, Resolve-Path, Get-CUAst, Get-CULoadedClass}
-        Get-CUClassConstructor          {Get-Item, Resolve-Path, Get-CuClass}
-        Get-CUClassMethod               {Where-Object, Get-Item, Resolve-Path, Get-CuClass}
-        Get-CUClassProperty             {Get-CuClass}
-        Get-CUCommands                  {Get-Command}
-        Get-CUEnum                      {throw, Get-cuast, ?}
-        Get-CULoadedClass               {Where-Object, ForEach-Object, Select-Object, Get-CUAst}
-        Get-CURaw                       {Get-Item, resolve-path}
-        Install-CUDiagramPrerequisites  {Get-Module, get-module, write-verbose, Install-Module...}
-        Test-IsCustomType               {Where}
-        Write-CUClassDiagram            {Test-Path, New-Object, get-item, Get-ChildItem}
-        Write-CUInterfaceImplementation {}
-        Write-CUPesterTest              {gci, Get-CUClass, Get-Item, Group-Object...}
+        Name                  Commands                                             Path
+        ----                  --------                                             ----
+        Find-Fufunction       {Get-Command, Get-Alias, Select-Object, Get-Item...} C:\PSFunctionExplorer.psm1
+        Write-Fufunctiongraph {Get-Item, Resolve-Path, Find-Fufunction, Graph...}  C:\PSFunctionExplorer.psm1
+
+        return all function present in the PSFunctionExplorer.psm1 and every commands present in it.
     .EXAMPLE
-        PS C:\> $a = Find-FUFunction -path c:\PSclassutils\PSClassutils.psm1 -ExcludePSCmdlets
-        PS C:\> $a
-        Name              FullName                                                         Functions
-        ----              --------                                                         ---------
-        PSClassUtils.psm1 C:\PSclassutils\PSClassutils.psm1                                {ConvertTo-titleCase, Find-CUClass, Get-CUAst, New-CUGraphExport...}
+        PS C:\> Find-FUFunction .\PSFunctionExplorer.psm1 -ExcludePSCmdlets
+        Name                  Commands                                Path
+        ----                  --------                                ----
+        Find-Fufunction       {}                                      C:\Users\Lx\GitPerso\PSFunctionUtils\PSFunctionExplorer\PSFunctionExplorer.psm1
+        Write-Fufunctiongraph {Find-Fufunction, Graph, Node, Edge...} C:\Users\Lx\GitPerso\PSFunctionUtils\PSFunctionExplorer\PSFunctionExplorer.psm1
 
-        If we examine closer the functions property
-        PS C:\> $a.Functions
-        Name                            Commands
-        ----                            --------
-        ConvertTo-titleCase             {}
-        Find-CUClass                    {Get-CUCLass}
-        Get-CUAst                       {}
-        New-CUGraphExport               {Export-PSGraph}
-        New-CUGraphParameters           {Out-CUPSGraph}
-        Out-CUPSGraph                   {Group, Graph, subgraph, ConvertTo-TitleCase...}
-        Get-CUClass                     {Get-CUAst, Get-CULoadedClass}
-        Get-CUClassConstructor          {Get-CuClass}
-        Get-CUClassMethod               {Get-CuClass}
-        Get-CUClassProperty             {Get-CuClass}
-        Get-CUCommands                  {}
-        Get-CUEnum                      {throw, Get-cuast, ?}
-        Get-CULoadedClass               {Get-CUAst}
-        Get-CURaw                       {}
-        Install-CUDiagramPrerequisites  {Install-Module, Install-GraphViz}
-        Test-IsCustomType               {Where}
-        Write-CUClassDiagram            {}
-        Write-CUInterfaceImplementation {}
-        Write-CUPesterTest              {gci, Get-CUClass}
+        Return all function present in the PSFunctionExplorer.psm1 and every commands present in it, but exclude default ps cmdlets.
     .INPUTS
-        FullName Path. Accepts pipeline inputs
+        Path. Accepts pipeline inputs
     .OUTPUTS
-        A CUScriptfile custom object
+        A FUFunction custom object
     .NOTES
         General notes
     #>
@@ -183,13 +130,14 @@ Function Find-FUFunction {
             $item = get-item (resolve-path -path $p).path
             If ( $item -is [system.io.FileInfo] -and $item.Extension -in @('.ps1','.psm1') ) {
                 Write-Verbose ("[FUFunction]Analyzing {0} ..." -f $item.FullName)
-                $t = [FUScriptFile]::new($item.FullName)
-                If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
-                    $t.GetFunctions($ToExclude)
-                } else {
-                    $t.GetFunctions()
+                $t = [FUUtility]::GetRawASTFunction($item.FullName)
+                Foreach ( $RawASTFunction in $t ) {
+                    If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
+                        [FUUtility]::GetFunction($RawASTFunction,$ToExclude,$item.FullName)
+                    } Else {
+                        [FUUtility]::GetFunction($RawASTFunction,$item.FullName)
+                    }
                 }
-                $t
             }
         }
     }
@@ -255,7 +203,7 @@ Function Write-FUFunctionGraph {
         }
 
         $graph = graph depencies @{rankdir='LR'}{
-            Foreach ( $t in $($results | Select-Object -ExpandProperty Functions) ) {
+            Foreach ( $t in $results ) {
                 If ( $t.commands.count -gt 0 ) {
                         node -Name $t.name -Attributes @{Color='red'}
                 } Else {

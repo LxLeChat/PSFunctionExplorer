@@ -1,21 +1,24 @@
 class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
+    $Path
     hidden $RawFunctionAST
 
-    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$Path) {
         $this.RawFunctionAST = $Raw
         $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.Path = $path
         $this.GetCommands()
     }
 
-    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList,$Path) {
         $this.RawFunctionAST = $Raw
-        $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.Name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
+        $this.Path = $path
         $this.GetCommands($ExclusionList)
     }
 
-    GetCommands () {
+    hidden GetCommands () {
 
         $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
@@ -28,7 +31,7 @@ class FUFunction {
     }
 
     ## Overload
-    GetCommands ($ExclusionList) {
+    hidden GetCommands ($ExclusionList) {
 
         $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
@@ -42,47 +45,36 @@ class FUFunction {
     }
 }
 
-Class FUScriptFile {
-    $Name
-    $FullName
-    [FUFunction[]]$Functions
-    hidden $RawASTContent
-    hidden $RawASTDocument
-    hidden $RawFunctionAST
-    
-    FUScriptFile ($path){
-        $this.FullName = $path
-        $this.Name = ([System.IO.FileInfo]$path).Name
-        $this.RawASTContent = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$Null)
-        $this.GetRawFunctions()
-    }
-
-    hidden GetRawFunctions() {
-        $this.RawASTDocument = $this.RawASTContent.FindAll({$args[0] -is [System.Management.Automation.Language.Ast]}, $true)
-        If ( $this.RawASTDocument.Count -gt 0 ) {
-            ## We want to exclude Classes, so we check if the parent of the current function is not a functionmemberast type
-            ## source: https://stackoverflow.com/questions/45929043/get-all-functions-in-a-powershell-script/45929412
-            $this.RawFunctionAST = $this.RawASTDocument.FindAll({$args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $($args[0].parent) -isnot [System.Management.Automation.Language.FunctionMemberAst] })
-        }
-    }
-
-    GetFunctions(){
-        Foreach ( $Function in $this.RawFunctionAST ) {
-            $this.Functions += [FUFunction]::New($function)
-        }
-    }
-
-    ## GetFunctions Overload, with ExclustionList
-    GetFunctions($ExclusionList){
-        Foreach ( $Function in $this.RawFunctionAST ) {
-            $this.Functions += [FUFunction]::New($function,$ExclusionList)
-        }
-    }
-
-}
-
 Class FUUtility {
+
+    ## Static Method to TitleCase
     Static [String]ToTitleCase ([string]$String){
         return (Get-Culture).TextInfo.ToTitleCase($String.ToLower())
     }
+
+    ## Static Method to return Function in AST Form, exclude classes
+    [Object[]] static GetRawASTFunction($Path) {
+
+        $RawFunctions   = $null
+        $ParsedFile     = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$Null)
+        $RawAstDocument = $ParsedFile.FindAll({$args[0] -is [System.Management.Automation.Language.Ast]}, $true)
+
+        If ( $RawASTDocument.Count -gt 0 ) {
+            ## source: https://stackoverflow.com/questions/45929043/get-all-functions-in-a-powershell-script/45929412
+            $RawFunctions = $RawASTDocument.FindAll({$args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $($args[0].parent) -isnot [System.Management.Automation.Language.FunctionMemberAst] })
+        }
+
+        return $RawFunctions
+    }
+
+    ## GetFunction, return [FuFunction]
+    [FUFunction] Static GetFunction($RawASTFunction,$path){
+        return [FUFunction]::New($RawASTFunction,$path)
+    }
+
+    ## GetFunctions Overload, with ExclustionList, return [FuFunction]
+    [FUFunction] Static GetFunction($RawASTFunction,$Exculde,$path){
+        return [FUFunction]::New($RawASTFunction,$Exculde,$path)
+    }
+
 }
