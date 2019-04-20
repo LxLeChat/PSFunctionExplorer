@@ -68,6 +68,6 @@ I've tasked to study a huuuuuuge module, with no comment, no documentation etc..
 Thanks to @stephanevg who inspired me to create this module and helped me discover AST and let me work on psclassutils !
 His Github: https://github.com/Stephanevg/
 
-PSHTML Graph:
+[PSHtml](https://github.com/stephanevg/PSHtml) Graph:
 
 ![Awsome PSHTML](https://github.com/LxLeChat/PSFunctionExplorer/blob/master/Example/module_pshtml2.png)
