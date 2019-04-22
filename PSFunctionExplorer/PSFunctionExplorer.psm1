@@ -217,10 +217,11 @@ Function Write-FUFunctionGraph {
                 }
             }
         } 
+        
+        $graph | export-PSGraph @ExportAttrib
+
         If ( $PassThru ) { 
             $graph
         }
-        
-        $graph | export-PSGraph @ExportAttrib
     }
 }
