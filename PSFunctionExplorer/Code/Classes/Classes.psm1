@@ -19,7 +19,6 @@ class FUFunction {
     }
 
     hidden GetCommands () {
-
         $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
             ## si elle existe deja, on ajotue juste à ces commands
@@ -43,6 +42,21 @@ class FUFunction {
             })
         }
     }
+
+    hidden GetHelp () {
+        $this.CommentHelp = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommentHelpInfo]},$true)
+    }
+}
+
+Class FUFunctionHelp {
+    $Name
+    $CommentHelp
+    $Path
+
+    FUFunctionHelp () {}
+
+    
+
 }
 
 Class FUUtility {

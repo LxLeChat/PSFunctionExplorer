@@ -1,6 +1,7 @@
 class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
+    $CommentHelp
     $Path
     hidden $RawFunctionAST
 
@@ -42,6 +43,10 @@ class FUFunction {
                 }
             })
         }
+    }
+
+    GetHelp () {
+        $this.CommentHelp = $this.RawFunctionAST.GetHelpContent()
     }
 }
 
