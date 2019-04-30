@@ -12,7 +12,8 @@ I used classes to write my script... Why ? Cause CLASSES are AWSOME !
 ### Find-FUFunction
 ```Find-FUFunction``` will help you find all function(s) declaration(s) within ps1/psm1 file(s). For each discovered function, the function will also find every commands within this function. It will output a custom ```FUFunction``` type.
 
-```PS >Find-FUFunction -Path ..\..\PSClassUtils\PSClassUtils\PSClassUtils.psm1
+```
+PS >Find-FUFunction -Path ..\..\PSClassUtils\PSClassUtils\PSClassUtils.psm1
 Name                            Commands                                                     Path
 ----                            --------                                                     ----
 Convertto-Titlecase             {Get-Culture}                                                C:\Users\Lx\PSClassUtils\PSClassUtils\PSClassUtils.psm1
@@ -41,6 +42,26 @@ You have every function declaration discovered in the psclassutils.psm1 file for
 #### Find-FUFunction Parameters
 * ```-Path``` fullpath of a ps1/psm1 file, accept values from the pipeline...
 * ```-ExcludePSCmdlets``` switch to exlcude default cmdlts and aliases...
+
+### ConvertTo-FUFile
+```ConvertTo-FUFile``` will export all discovered function definitions in it's owner ps1 file.
+
+```
+PS C:\> Find-FUFunction -Path .\PSFunctionExplorer.psm1 | ConvertTo-FUFile
+    Répertoire : C:\
+
+
+Mode                LastWriteTime         Length Name
+----                -------------         ------ ----
+-a----       30/04/2019     23:24            658 Convertto-Fufile.ps1
+-a----       30/04/2019     23:24           3322 Find-Fufunction.ps1
+-a----       30/04/2019     23:24           2925 Write-Fufunctiongraph.ps1
+```
+
+#### ConvertTo-FUFile Parameters
+* ```-FUFunction``` FUFunction Object Type..
+* ```-Path``` Export Path, by default, will use the current directory..
+
 
 ### Write-FUFunctionDiagram
 ```Write-FUFunctionDiagram``` will draw a graph of dependencies. Just check the [Examples](./Example) ...
