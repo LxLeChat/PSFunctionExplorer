@@ -2,12 +2,14 @@ class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
     $Path
+    $Text
     hidden $RawFunctionAST
 
     FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$Path) {
         $this.RawFunctionAST = $Raw
         $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
+        $this.Text = $this.RawFunctionAST.Extent.Text
         $this.GetCommands()
     }
 
@@ -15,6 +17,7 @@ class FUFunction {
         $this.RawFunctionAST = $Raw
         $this.Name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
+        $this.Text = $this.RawFunctionAST.Extent.Text
         $this.GetCommands($ExclusionList)
     }
 
