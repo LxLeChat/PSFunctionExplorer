@@ -2,14 +2,12 @@ class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
     $Path
-    $Text
     hidden $RawFunctionAST
 
     FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$Path) {
         $this.RawFunctionAST = $Raw
         $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
-        $this.Text = $this.RawFunctionAST.Extent.Text
         $this.GetCommands()
     }
 
@@ -77,6 +75,21 @@ Class FUUtility {
     ## GetFunctions Overload, with ExclustionList, return [FuFunction]
     [FUFunction] Static GetFunction($RawASTFunction,$Exculde,$path){
         return [FUFunction]::New($RawASTFunction,$Exculde,$path)
+    }
+
+    ## SaveTofile in current path
+    [System.IO.FileSystemInfo] static SaveToFile ([FuFunction]$Function) {
+        return New-Item -Name $([FUUtility]::FileName($Function.name)) -value $Function.RawFunctionAST.Extent.Text -ItemType File
+    }
+
+    ## SaveTofile Overload, with Specific path for export
+    [System.IO.FileSystemInfo] static SaveToFile ([FuFunction]$Function,$Path) {
+        return New-Item -Path $Path -Name $([FUUtility]::FileName($Function.name)) -value $Function.RawFunctionAST.Extent.Text -ItemType File
+    }
+
+    ## Construct filename for export
+    [string] hidden static FileName ($a) {
+        return "$a.ps1"
     }
 
 }

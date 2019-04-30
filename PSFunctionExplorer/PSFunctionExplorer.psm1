@@ -1,15 +1,13 @@
-class FUFunction {
+Class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
     $Path
-    $Text
     hidden $RawFunctionAST
 
     FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$Path) {
         $this.RawFunctionAST = $Raw
         $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
-        $this.Text = $this.RawFunctionAST.Extent.Text
         $this.GetCommands()
     }
 
@@ -17,7 +15,6 @@ class FUFunction {
         $this.RawFunctionAST = $Raw
         $this.Name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
-        $this.Text = $this.RawFunctionAST.Extent.Text
         $this.GetCommands($ExclusionList)
     }
 
@@ -80,6 +77,87 @@ Class FUUtility {
         return [FUFunction]::New($RawASTFunction,$Exculde,$path)
     }
 
+    ## SaveTofile in current path
+    [System.IO.FileSystemInfo] static SaveToFile ([FUFunction]$Function) {
+        return New-Item -Name $([FUUtility]::FileName($Function.name)) -value $Function.RawFunctionAST.Extent.Text -ItemType File
+    }
+
+    ## SaveTofile Overload, with Specific path for export
+    [System.IO.FileSystemInfo] static SaveToFile ([FUFunction]$Function,$Path) {
+        return New-Item -Path $Path -Name $([FUUtility]::FileName($Function.name)) -value $Function.RawFunctionAST.Extent.Text -ItemType File
+    }
+
+    ## Construct filename for export
+    [string] hidden static FileName ($a) {
+        return "$a.ps1"
+    }
+
+}
+
+Function ConvertTo-FUFile {
+    <#
+    .SYNOPSIS
+        Convert a FUFunction to a ps1 file. It's like a reverse build process.
+    .DESCRIPTION
+        Convert a FUFunction to a ps1 file. It's like a reverse build process.
+    .EXAMPLE
+        PS C:\> Find-FUFunction -Path .\PSFunctionExplorer.psm1 | ConvertTo-FUFile
+            Répertoire : C:\
+
+
+        Mode                LastWriteTime         Length Name
+        ----                -------------         ------ ----
+        -a----       30/04/2019     23:24            658 Convertto-Fufile.ps1
+        -a----       30/04/2019     23:24           3322 Find-Fufunction.ps1
+        -a----       30/04/2019     23:24           2925 Write-Fufunctiongraph.ps1
+
+        Find all functions definitions inside PSFunctionExplorer.psm1 and save each function inside it's own ps1 file.
+    .EXAMPLE
+        PS C:\> Find-FUFunction -Path .\PSFunctionExplorer.psm1 | ConvertTo-FUFile -Path C:\Temp
+            Répertoire : C:\Temp
+
+
+        Mode                LastWriteTime         Length Name
+        ----                -------------         ------ ----
+        -a----       30/04/2019     23:24            658 Convertto-Fufile.ps1
+        -a----       30/04/2019     23:24           3322 Find-Fufunction.ps1
+        -a----       30/04/2019     23:24           2925 Write-Fufunctiongraph.ps1
+
+        Find all functions definitions inside PSFunctionExplorer.psm1 and save each function inside it's own ps1 file, inside the C:\Temp directory.
+    .INPUTS
+        [FuFunction]
+    .OUTPUTS
+        [System.IO.FileSystemInfo]
+    .NOTES
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipeline=$True)]
+        [Object[]]$FUFunction,
+        [String]$Path
+    )
+    
+    begin {
+        If ( $PSBoundParameters['Path']) {
+            $item = get-item (resolve-path -path $path).path
+        }
+    }
+    
+    process {
+        ForEach( $Function in $FUFunction) {
+            
+            If ( $PSBoundParameters['Path']) {
+                [FUUtility]::SaveToFile($Function,$Item.FullName)
+            } Else {
+                [FUUtility]::SaveToFile($Function)
+            }
+            
+        }
+    }
+    
+    end {
+    }
 }
 
 Function Find-FUFunction {
