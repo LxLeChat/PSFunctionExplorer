@@ -337,7 +337,7 @@ Function Write-FUGraph {
                                 } Else {
                                     $PSBoundParameters['LayoutEngine']
                                 }
-            ShowGraph    = If ( $null -eq $PSBoundParameters['ShowGraph']) {
+            ShowGraph       = If ( $null -eq $PSBoundParameters['ShowGraph']) {
                                     $False
                                 } Else {
                                     $True
