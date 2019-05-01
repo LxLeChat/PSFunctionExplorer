@@ -133,29 +133,29 @@ Function Expand-FUFile {
 
     [CmdletBinding()]
     param (
-        [Parameter(ValueFromPipeline=$True)]
+        [Parameter(ValueFromPipeline)]
         [Object[]]$FUFunction,
         [String]$Path
     )
-    
+
     begin {
         If ( $PSBoundParameters['Path']) {
             $item = get-item (resolve-path -path $path).path
         }
     }
-    
+
     process {
         ForEach( $Function in $FUFunction) {
-            
+
             If ( $PSBoundParameters['Path']) {
                 [FUUtility]::SaveToFile($Function,$Item.FullName)
             } Else {
                 [FUUtility]::SaveToFile($Function)
             }
-            
+
         }
     }
-    
+
     end {
     }
 }
@@ -194,18 +194,18 @@ Function Find-FUFunction {
     [CmdletBinding()]
     param (
         [Alias("FullName")]
-        [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [string[]]$Path,
         [Switch]$ExcludePSCmdlets
     )
-    
+
     begin {
         If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
             $ToExclude = (Get-Command -Module "Microsoft.PowerShell.Archive","Microsoft.PowerShell.Utility","Microsoft.PowerShell.ODataUtils","Microsoft.PowerShell.Operation.Validation","Microsoft.PowerShell.Management","Microsoft.PowerShell.Core","Microsoft.PowerShell.LocalAccounts","Microsoft.WSMan.Management","Microsoft.PowerShell.Security","Microsoft.PowerShell.Diagnostics","Microsoft.PowerShell.Host").Name
             $ToExclude += (Get-Alias | Select-Object -Property Name).name
         }
     }
-    
+
     process {
         ForEach( $p in $Path) {
             $item = get-item (resolve-path -path $p).path
@@ -222,7 +222,7 @@ Function Find-FUFunction {
             }
         }
     }
-    
+
     end {
     }
 }
@@ -245,7 +245,7 @@ Function Write-FUGraph {
     [CmdletBinding()]
     param (
         [Alias("FullName")]
-        [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [string[]]$Path,
         [Switch]$ExcludePSCmdlets,
         [System.IO.FileInfo]$ExportPath,
@@ -256,11 +256,11 @@ Function Write-FUGraph {
         [Switch]$ShowGraph,
         [Switch]$PassThru
     )
-    
+
     begin {
         $results = @()
     }
-    
+
     process {
         ForEach( $p in $Path) {
             $item = get-item (resolve-path -path $p).path
@@ -273,7 +273,7 @@ Function Write-FUGraph {
             }
         }
     }
-    
+
     end {
 
         $ExportAttrib = @{
@@ -290,18 +290,18 @@ Function Write-FUGraph {
                 } Else {
                     node -Name $t.name -Attributes @{Color='green'}
                 }
-            
+
                 If ( $null -ne $t.commands) {
                     Foreach($cmdlet in $t.commands ) {
                         edge -from $t.name -to $cmdlet
                     }
                 }
             }
-        } 
-        
+        }
+
         $graph | export-PSGraph @ExportAttrib
 
-        If ( $PassThru ) { 
+        If ( $PassThru ) {
             $graph
         }
     }
