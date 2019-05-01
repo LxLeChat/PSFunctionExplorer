@@ -1,17 +1,19 @@
+using namespace System.Management.Automation.Language
+
 Class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
     $Path
     hidden $RawFunctionAST
 
-    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$Path) {
+    FUFunction ([FunctionDefinitionAST]$Raw,$Path) {
         $this.RawFunctionAST = $Raw
         $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
         $this.GetCommands()
     }
 
-    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList,$Path) {
+    FUFunction ([FunctionDefinitionAST]$Raw,$ExclusionList,$Path) {
         $this.RawFunctionAST = $Raw
         $this.Name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
@@ -20,7 +22,7 @@ Class FUFunction {
 
     hidden GetCommands () {
 
-        $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
+        $t = $this.RawFunctionAST.findall({$args[0] -is [CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
             ## si elle existe deja, on ajotue juste à ces commands
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
@@ -33,7 +35,7 @@ Class FUFunction {
     ## Overload
     hidden GetCommands ($ExclusionList) {
 
-        $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
+        $t = $this.RawFunctionAST.findall({$args[0] -is [CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
                 $Command = [FUUtility]::ToTitleCase($_)
@@ -56,12 +58,12 @@ Class FUUtility {
     [Object[]] static GetRawASTFunction($Path) {
 
         $RawFunctions   = $null
-        $ParsedFile     = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$Null)
-        $RawAstDocument = $ParsedFile.FindAll({$args[0] -is [System.Management.Automation.Language.Ast]}, $true)
+        $ParsedFile     = [Parser]::ParseFile($path, [ref]$null, [ref]$Null)
+        $RawAstDocument = $ParsedFile.FindAll({$args[0] -is [Ast]}, $true)
 
         If ( $RawASTDocument.Count -gt 0 ) {
             ## source: https://stackoverflow.com/questions/45929043/get-all-functions-in-a-powershell-script/45929412
-            $RawFunctions = $RawASTDocument.FindAll({$args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $($args[0].parent) -isnot [System.Management.Automation.Language.FunctionMemberAst] })
+            $RawFunctions = $RawASTDocument.FindAll({$args[0] -is [FunctionDefinitionAst] -and $($args[0].parent) -isnot [FunctionMemberAst] })
         }
 
         return $RawFunctions
@@ -137,25 +139,25 @@ Function Expand-FUFile {
         [Object[]]$FUFunction,
         [String]$Path
     )
-    
+
     begin {
         If ( $PSBoundParameters['Path']) {
             $item = get-item (resolve-path -path $path).path
         }
     }
-    
+
     process {
         ForEach( $Function in $FUFunction) {
-            
+
             If ( $PSBoundParameters['Path']) {
                 [FUUtility]::SaveToFile($Function,$Item.FullName)
             } Else {
                 [FUUtility]::SaveToFile($Function)
             }
-            
+
         }
     }
-    
+
     end {
     }
 }
@@ -198,14 +200,14 @@ Function Find-FUFunction {
         [string[]]$Path,
         [Switch]$ExcludePSCmdlets
     )
-    
+
     begin {
         If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
             $ToExclude = (Get-Command -Module "Microsoft.PowerShell.Archive","Microsoft.PowerShell.Utility","Microsoft.PowerShell.ODataUtils","Microsoft.PowerShell.Operation.Validation","Microsoft.PowerShell.Management","Microsoft.PowerShell.Core","Microsoft.PowerShell.LocalAccounts","Microsoft.WSMan.Management","Microsoft.PowerShell.Security","Microsoft.PowerShell.Diagnostics","Microsoft.PowerShell.Host").Name
             $ToExclude += (Get-Alias | Select-Object -Property Name).name
         }
     }
-    
+
     process {
         ForEach( $p in $Path) {
             $item = get-item (resolve-path -path $p).path
@@ -222,7 +224,7 @@ Function Find-FUFunction {
             }
         }
     }
-    
+
     end {
     }
 }
@@ -256,11 +258,11 @@ Function Write-FUGraph {
         [Switch]$ShowGraph,
         [Switch]$PassThru
     )
-    
+
     begin {
         $results = @()
     }
-    
+
     process {
         ForEach( $p in $Path) {
             $item = get-item (resolve-path -path $p).path
@@ -273,7 +275,7 @@ Function Write-FUGraph {
             }
         }
     }
-    
+
     end {
 
         $ExportAttrib = @{
@@ -290,18 +292,18 @@ Function Write-FUGraph {
                 } Else {
                     node -Name $t.name -Attributes @{Color='green'}
                 }
-            
+
                 If ( $null -ne $t.commands) {
                     Foreach($cmdlet in $t.commands ) {
                         edge -from $t.name -to $cmdlet
                     }
                 }
             }
-        } 
-        
+        }
+
         $graph | export-PSGraph @ExportAttrib
 
-        If ( $PassThru ) { 
+        If ( $PassThru ) {
             $graph
         }
     }
