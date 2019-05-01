@@ -227,7 +227,7 @@ Function Find-FUFunction {
     }
 }
 
-Function Write-FUFunctionGraph {
+Function Write-FUGraph {
     <#
     .SYNOPSIS
         Generate dependecy graph for a function or a set of functions found in a ps1/psm1 file.

@@ -55,7 +55,7 @@ Mode                LastWriteTime         Length Name
 ----                -------------         ------ ----
 -a----       30/04/2019     23:24            658 Export-Fufile.ps1
 -a----       30/04/2019     23:24           3322 Find-Fufunction.ps1
--a----       30/04/2019     23:24           2925 Write-Fufunctiongraph.ps1
+-a----       30/04/2019     23:24           2925 Write-FUGraph.ps1
 ```
 
 #### Export-FUFile Parameters
@@ -63,8 +63,8 @@ Mode                LastWriteTime         Length Name
 * ```-Path``` Export Path, by default, will use the current directory..
 
 
-### Write-FUFunctionDiagram
-```Write-FUFunctionDiagram``` will draw a graph of dependencies. Just check the [Examples](./Example) ...
+### Write-FUGraph
+```Write-FUGraph``` will draw a graph of dependencies. Just check the [Examples](./Example) ...
 You will need the awsome [PSGraph](https://github.com/KevinMarquette/PSGraph) Module!..
 PSFunctionExplore.psm1 file:..
 
@@ -74,7 +74,7 @@ PSFunctionExplore.psm1 file:..
 * Green node(s): Standalone function !..
 * Black node(s): External function, in this example: graph, node, edge and export-psgraph are imported function from PSGRAPH...
 
-#### Write-FUFunctionDiagram Parameters
+#### Write-FUGraph Parameters
 * ```-Path``` fullpath of a ps1/psm1 file
 * ```-ExcludePSCmdlets``` exlcude default cmdlts and aliases
 * ```-ExportPath``` FullName of the export file that will be generated. If not specified, a random filename in the current directory will be used
