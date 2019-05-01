@@ -158,7 +158,7 @@ Function Expand-FUFile {
 
     [CmdletBinding()]
     param (
-        [Parameter(ValueFromPipeline=$True)]
+        [Parameter(ValueFromPipeline)]
         [Object[]]$FUFunction,
 
         [String]$Path
@@ -220,7 +220,7 @@ Function Find-FUFunction {
     [CmdletBinding()]
     param (
         [Alias("FullName")]
-        [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [string[]]$Path,
 
         [Switch]$ExcludePSCmdlets
@@ -284,7 +284,7 @@ Function Write-FUGraph {
     [CmdletBinding()]
     param (
         [Alias("FullName")]
-        [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [string[]]$Path,
 
         [Switch]$ExcludePSCmdlets,
