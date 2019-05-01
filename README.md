@@ -43,22 +43,22 @@ You have every function declaration discovered in the psclassutils.psm1 file for
 * ```-Path``` fullpath of a ps1/psm1 file, accept values from the pipeline...
 * ```-ExcludePSCmdlets``` switch to exlcude default cmdlts and aliases...
 
-### Export-FUFile
-```Export-FUFile``` will export all discovered function definitions in it's owner ps1 file.
+### Expand-FUFile
+```Expand-FUFile``` will export all discovered function definitions in it's owner ps1 file.
 
 ```
-PS C:\> Find-FUFunction -Path .\PSFunctionExplorer.psm1 | Export-FUFile
+PS C:\> Find-FUFunction -Path .\PSFunctionExplorer.psm1 | Expand-FUFile
     Répertoire : C:\
 
 
 Mode                LastWriteTime         Length Name
 ----                -------------         ------ ----
--a----       30/04/2019     23:24            658 Export-Fufile.ps1
+-a----       30/04/2019     23:24            658 Expand-FUFile.ps1
 -a----       30/04/2019     23:24           3322 Find-Fufunction.ps1
 -a----       30/04/2019     23:24           2925 Write-FUGraph.ps1
 ```
 
-#### Export-FUFile Parameters
+#### Expand-FUFile Parameters
 * ```-FUFunction``` FUFunction Object Type..
 * ```-Path``` Export Path, by default, will use the current directory..
 
