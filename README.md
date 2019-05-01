@@ -93,3 +93,5 @@ His Github: https://github.com/Stephanevg/
 [PSHtml](https://github.com/stephanevg/PSHtml) Graph:
 
 ![Awsome PSHTML](https://github.com/LxLeChat/PSFunctionExplorer/blob/master/Example/module_pshtml2.png)
+
+Thanks to @ChrisLGardner for his advices!
