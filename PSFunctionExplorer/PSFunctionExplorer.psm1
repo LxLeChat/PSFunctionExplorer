@@ -2,11 +2,9 @@ using namespace System.Management.Automation.Language
 
 Class FUFunction {
     $Name
-
     [System.Collections.ArrayList]$Commands = @()
-
+    [System.Collections.ArrayList]$Types = @()
     $Path
-
     hidden $RawFunctionAST
 
     FUFunction ([FunctionDefinitionAST]$Raw,$Path) {
@@ -14,6 +12,7 @@ Class FUFunction {
         $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
         $this.GetCommands()
+        $this.GetTypes()
     }
 
     FUFunction ([FunctionDefinitionAST]$Raw,$ExclusionList,$Path) {
@@ -21,12 +20,25 @@ Class FUFunction {
         $this.Name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
         $this.GetCommands($ExclusionList)
+        $this.GetTypes()
+    }
+
+    hidden GetTypes () {
+        $t = $this.RawFunctionAST.findall({
+            $args[0] -is [TypeExpressionAST]
+        },$true)
+
+        If ( $t.count -gt 0 ) {
+           ($t.TypeName | Select-Object -Unique).Foreach({
+               $this.Types.add([FUUtility]::ToTitleCase($_.FullName))
+           })
+        }
     }
 
     hidden GetCommands () {
 
         $t = $this.RawFunctionAST.findall({
-            $args[0] -is [System.Management.Automation.Language.CommandAst]
+            $args[0] -is [CommandAst]
         },$true)
 
         If ( $t.Count -gt 0 ) {
@@ -42,7 +54,7 @@ Class FUFunction {
     hidden GetCommands ($ExclusionList) {
 
         $t = $this.RawFunctionAST.findall({
-            $args[0] -is [System.Management.Automation.Language.CommandAst]
+            $args[0] -is [CommandAst]
         },$true)
 
         If ( $t.Count -gt 0 ) {
