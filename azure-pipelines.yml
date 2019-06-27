@@ -13,8 +13,10 @@ pool:
 steps:
 - powershell: |
     "Testing: {0} ..." -f "powershell.exe"
+    "get-variable *"
   displayName: 'Test run Powershell'
 
 - pwsh: |
     "Testing: {0} ..." -f "pwsh.exe"
+    "get-variable *"
   displayName: 'Test run Pwsh'
