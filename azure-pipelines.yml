@@ -13,11 +13,9 @@ pool:
 steps:
 - pwsh: |
     "[VerbosePreference...]"
-    $VerbosePreference = 'Continue'
-
-    "[Installing Pester...]
+    $VerbosePreference = "Continue"
+    "[Installing Pester...]"
     Install-module -Name Pester -Force -Verbose
-
     "[Running Pesters Scripts...]"
     .\CI\plop.ps1
   displayName: 'Pwsh: Run Pester Script(s)'
