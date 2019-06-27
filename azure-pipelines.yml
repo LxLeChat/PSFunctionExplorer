@@ -13,10 +13,10 @@ pool:
 steps:
 - powershell: |
     "Testing: {0} ..." -f "powershell.exe"
-    "get-variable *"
+    (Get-Variable).foreach({"{0} - {1}" -f $_.Name,$_.Value})
   displayName: 'Test run Powershell'
 
 - pwsh: |
     "Testing: {0} ..." -f "pwsh.exe"
-    "get-variable *"
+    (Get-Variable).foreach({"{0} - {1}" -f $_.Name,$_.Value})
   displayName: 'Test run Pwsh'
