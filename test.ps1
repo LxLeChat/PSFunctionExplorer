@@ -1,0 +1,1 @@
+write-host "test from test.ps1 FILE"
