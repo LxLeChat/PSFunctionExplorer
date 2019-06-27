@@ -1,4 +1,4 @@
-﻿import-module -FilePath .\PSFunctionExplorer\PSFunctionExplorer.psm1
+﻿import-module .\PSFunctionExplorer\PSFunctionExplorer.psm1
 
 InModuleScope -ModuleName PSFunctionExplorer -ScriptBlock {
 
