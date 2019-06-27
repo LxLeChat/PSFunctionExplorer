@@ -4,16 +4,17 @@
 # https://aka.ms/yaml
 
 trigger:
-- master
+- pipeline
 
 pool:
-  vmImage: 'ubuntu-latest'
+  namme: 'Windows Tests'
+  vmImage: 'windows-2019'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- powershell: |
+    "Testing: {0} ..." -f "powershell.exe"
+  displayName: 'Test run Powershell'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- pwsh: |
+    "Testing: {0} ..." -f "pwsh.exe"
+  displayName: 'Test run Pwsh'
