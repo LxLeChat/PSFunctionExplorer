@@ -13,7 +13,6 @@ pool:
 steps:
 - powershell: |
     "Testing: {0} ..." -f "powershell.exe"
-    ping www.google.fr
     .\CI\plop.ps1
   displayName: 'Test run Powershell'
 
