@@ -12,6 +12,8 @@ pool:
 
 steps:
 - pwsh: |
-    "Testing: {0} ..." -f "pwsh.exe"
+    "[Testing: {0}]" -f "pwsh.exe"
+    "[Installing Pester]"
+    Install-module -Name Pester -Force
     .\CI\plop.ps1
   displayName: 'Pwsh: Run Pester Script(s)'
