@@ -1,4 +1,5 @@
 using namespace System.Management.Automation.Language
+#A
 
 Class FUFunction {
     $Name
