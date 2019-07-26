@@ -6,12 +6,11 @@
 trigger:
 - pipeline
 
-variables:
-- group: Nuget
-
 pool:
   namme: 'Windows Tests'
   vmImage: 'windows-2019'
+variables:
+- group: Nuget
 
 steps:
 - pwsh: |
