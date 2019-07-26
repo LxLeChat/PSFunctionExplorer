@@ -5,5 +5,6 @@ $PesterResults = invoke-pester $(join-Path -Path $path -ChildPath "PSFunctionExp
 If ($PesterResults.PassedCount -eq $PesterResults.TotalCount ) {
     write-host "LOLLILOL"
     ## Do Something
-    Get-Item -Path Env:*
+    "test: {0}" -f $(test)
+    "simplevariable: {1}" -f $(simplevariable)
 }
