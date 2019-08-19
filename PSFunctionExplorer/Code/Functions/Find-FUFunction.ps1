@@ -35,7 +35,7 @@ Function Find-FUFunction {
         [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
         [string[]]$Path,
         [Switch]$ExcludePSCmdlets,
-        [Switch]$TitleCase = $false
+        [Switch]$NoTitleCase = $False
     )
     
     begin {
@@ -53,9 +53,9 @@ Function Find-FUFunction {
                 $t = [FUUtility]::GetRawASTFunction($item.FullName)
                 Foreach ( $RawASTFunction in $t ) {
                     If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
-                        [FUUtility]::GetFunction($RawASTFunction,$ToExclude,$item.FullName,$TitleCase)
+                        [FUUtility]::GetFunction($RawASTFunction,$ToExclude,$item.FullName,$NoTitleCase)
                     } Else {
-                        [FUUtility]::GetFunction($RawASTFunction,$item.FullName,$TitleCase)
+                        [FUUtility]::GetFunction($RawASTFunction,$item.FullName,$NoTitleCase)
                     }
                 }
             }
