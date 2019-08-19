@@ -35,7 +35,7 @@ Function Find-FUFunction {
         [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
         [string[]]$Path,
         [Switch]$ExcludePSCmdlets,
-        [Bool]$TitleCase = $false
+        [Switch]$TitleCase = $false
     )
     
     begin {
