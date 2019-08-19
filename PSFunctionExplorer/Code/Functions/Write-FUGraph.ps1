@@ -16,9 +16,8 @@ Function Write-FUGraph {
     [CmdletBinding()]
     param (
         [Alias("FullName")]
-        [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
-        [string[]]$Path,
-        [Switch]$ExcludePSCmdlets,
+        [Parameter(ValueFromPipeline=$True)]
+        [FuFunction[]]$InputObject,
         [System.IO.FileInfo]$ExportPath,
         [ValidateSet('pdf',"png")]
         [String]$OutPutFormat,
@@ -29,20 +28,15 @@ Function Write-FUGraph {
     )
     
     begin {
-        $results = @()
+        $Results = @()
     }
     
     process {
-        ForEach( $p in $Path) {
-            $item = get-item (resolve-path -path $p).path
-            If ( $item -is [system.io.FileInfo] -and $item.Extension -in @('.ps1','.psm1') ) {
-                If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
-                    $results += Find-FUFunction -Path $item -ExcludePSCmdlets
-                } Else {
-                    $results += Find-FUFunction -Path $item
-                }
-            }
+
+        Foreach ( $Function in $InputObject ) {
+            $Results += $Function
         }
+        
     }
     
     end {
@@ -55,7 +49,7 @@ Function Write-FUGraph {
         }
 
         $graph = graph depencies @{rankdir='LR'}{
-            Foreach ( $t in $results ) {
+            Foreach ( $t in $Results ) {
                 If ( $t.commands.count -gt 0 ) {
                         node -Name $t.name -Attributes @{Color='red'}
                 } Else {
@@ -75,5 +69,6 @@ Function Write-FUGraph {
         If ( $PassThru ) { 
             $graph
         }
+        
     }
 }
