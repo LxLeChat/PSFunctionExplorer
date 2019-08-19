@@ -1,66 +1,66 @@
 using namespace System.Management.Automation.Language
 
-Class FUFunction {
+class FUFunction {
     $Name
     [System.Collections.ArrayList]$Commands = @()
-    [System.Collections.ArrayList]$Types = @()
     $Path
     hidden $RawFunctionAST
 
-    FUFunction ([FunctionDefinitionAST]$Raw,$Path) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$Path,[Bool]$TitleCase) {
         $this.RawFunctionAST = $Raw
-        $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
-        $this.GetCommands()
-        $this.GetTypes()
-    }
+        $this.GetCommands($TitleCase)
 
-    FUFunction ([FunctionDefinitionAST]$Raw,$ExclusionList,$Path) {
-        $this.RawFunctionAST = $Raw
-        $this.Name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
-        $this.Path = $path
-        $this.GetCommands($ExclusionList)
-        $this.GetTypes()
-    }
-
-    hidden GetTypes () {
-        $t = $this.RawFunctionAST.findall({
-            $args[0] -is [TypeExpressionAST]
-        },$true)
-
-        If ( $t.count -gt 0 ) {
-           ($t.TypeName | Select-Object -Unique).Foreach({
-               $this.Types.add([FUUtility]::ToTitleCase($_.FullName))
-           })
+        If ( $TitleCase ) {
+            $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)    
+        } Else {
+            $this.name = $this.RawFunctionAST.name
         }
     }
 
-    hidden GetCommands () {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList,$Path,[Bool]$TitleCase) {
+        $this.RawFunctionAST = $Raw
+        $this.Path = $path
+        $this.GetCommands($ExclusionList,$TitleCase)
 
-        $t = $this.RawFunctionAST.findall({
-            $args[0] -is [CommandAst]
-        },$true)
+        If ( $TitleCase ) {
+            $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)    
+        } Else {
+            $this.name = $this.RawFunctionAST.name
+        }
+    }
 
+    hidden GetCommands ([Bool]$TitleCase) {
+
+        $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
             ## si elle existe deja, on ajotue juste à ces commands
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
-                $Command = [FUUtility]::ToTitleCase($_)
+                
+                If ( $TitleCase ) {
+                    $Command = [FUUtility]::ToTitleCase($_)
+                } Else {
+                    $Command = $_
+                }
+                
                 $this.Commands.Add($Command)
             })
         }
     }
 
     ## Overload
-    hidden GetCommands ($ExclusionList) {
+    hidden GetCommands ($ExclusionList,[Bool]$TitleCase) {
 
-        $t = $this.RawFunctionAST.findall({
-            $args[0] -is [CommandAst]
-        },$true)
-
+        $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
                 $Command = [FUUtility]::ToTitleCase($_)
                 If ( $ExclusionList -notcontains $Command) {
+                    If ( $TitleCase ) {
+                        $Command = [FUUtility]::ToTitleCase($_)
+                    } Else {
+                        $Command = $_
+                    }
                     $this.Commands.Add($Command)
                 }
             })
@@ -79,54 +79,40 @@ Class FUUtility {
     [Object[]] static GetRawASTFunction($Path) {
 
         $RawFunctions   = $null
-        $ParsedFile     = [Parser]::ParseFile($path, [ref]$null, [ref]$Null)
-        $RawAstDocument = $ParsedFile.FindAll({$args[0] -is [Ast]}, $true)
+        $ParsedFile     = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$null, [ref]$Null)
+        $RawAstDocument = $ParsedFile.FindAll({$args[0] -is [System.Management.Automation.Language.Ast]}, $true)
 
         If ( $RawASTDocument.Count -gt 0 ) {
             ## source: https://stackoverflow.com/questions/45929043/get-all-functions-in-a-powershell-script/45929412
-            $RawFunctions = $RawASTDocument.FindAll({
-                $args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
-                $($args[0].parent) -isnot [System.Management.Automation.Language.FunctionMemberAst]
-            })
+            $RawFunctions = $RawASTDocument.FindAll({$args[0] -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $($args[0].parent) -isnot [System.Management.Automation.Language.FunctionMemberAst] })
         }
 
         return $RawFunctions
     }
 
     ## GetFunction, return [FuFunction]
-    [FUFunction] Static GetFunction($RawASTFunction,$path){
-        return [FUFunction]::New($RawASTFunction,$path)
+    [FUFunction] Static GetFunction($RawASTFunction,$path,$TitleCase){
+        return [FUFunction]::New($RawASTFunction,$path,$TitleCase)
     }
 
     ## GetFunctions Overload, with ExclustionList, return [FuFunction]
-    [FUFunction] Static GetFunction($RawASTFunction,$Exculde,$path){
-        return [FUFunction]::New($RawASTFunction,$Exculde,$path)
+    [FUFunction] Static GetFunction($RawASTFunction,$Exculde,$path,$TitleCase){
+        return [FUFunction]::New($RawASTFunction,$Exculde,$path,$TitleCase)
     }
 
     ## SaveTofile in current path
-    [System.IO.FileSystemInfo] static SaveToFile ([FUFunction]$Function) {
-        $NewItemSplat = @{
-            Name = $([FUUtility]::FileName($Function.name))
-            Value  = $Function.RawFunctionAST.Extent.Text
-            ItemType = 'File'
-        }
-        return New-Item @NewItemSplat
+    [System.IO.FileSystemInfo] static SaveToFile ([FuFunction]$Function) {
+        return New-Item -Name $([FUUtility]::FileName($Function.name)) -value $Function.RawFunctionAST.Extent.Text -ItemType File
     }
 
     ## SaveTofile Overload, with Specific path for export
-    [System.IO.FileSystemInfo] static SaveToFile ([FUFunction]$Function,$Path) {
-        $NewItemSplat = @{
-            Path = $Path
-            Name = $([FUUtility]::FileName($Function.name))
-            Value = $Function.RawFunctionAST.Extent.Text
-            ItemType = 'File'
-        }
-        return New-Item @NewItemSplat
+    [System.IO.FileSystemInfo] static SaveToFile ([FuFunction]$Function,$Path) {
+        return New-Item -Path $Path -Name $([FUUtility]::FileName($Function.name)) -value $Function.RawFunctionAST.Extent.Text -ItemType File
     }
 
     ## Construct filename for export
-    [string] hidden static FileName ($filename) {
-        return "$filename.ps1"
+    [string] hidden static FileName ($a) {
+        return "$a.ps1"
     }
 
 }
@@ -232,48 +218,43 @@ Function Find-FUFunction {
     [CmdletBinding()]
     param (
         [Alias("FullName")]
-        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
         [string[]]$Path,
-
-        [Switch]$ExcludePSCmdlets
+        [Switch]$ExcludePSCmdlets,
+        [Switch]$NoTitleCase
     )
-
+    
     begin {
-        If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
-            $ToExclude = Get-Command -Module @(
-                "Microsoft.PowerShell.Archive"
-                "Microsoft.PowerShell.Utility"
-                "Microsoft.PowerShell.ODataUtils"
-                "Microsoft.PowerShell.Operation.Validation"
-                "Microsoft.PowerShell.Management"
-                "Microsoft.PowerShell.Core"
-                "Microsoft.PowerShell.LocalAccounts"
-                "Microsoft.WSMan.Management"
-                "Microsoft.PowerShell.Security"
-                "Microsoft.PowerShell.Diagnostics"
-                "Microsoft.PowerShell.Host") | Select-Object -ExpandProperty Name
 
-            $ToExclude += Get-Alias | Select-Object -ExpandProperty Name
+        If ( ! $PSBoundParameters['NoTitleCase'] ) {
+            $NoTitleCase = $True
+        } else {
+            $NoTitleCase = $False
+        } 
+
+        If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
+            $ToExclude = (Get-Command -Module "Microsoft.PowerShell.Archive","Microsoft.PowerShell.Utility","Microsoft.PowerShell.ODataUtils","Microsoft.PowerShell.Operation.Validation","Microsoft.PowerShell.Management","Microsoft.PowerShell.Core","Microsoft.PowerShell.LocalAccounts","Microsoft.WSMan.Management","Microsoft.PowerShell.Security","Microsoft.PowerShell.Diagnostics","Microsoft.PowerShell.Host").Name
+            $ToExclude += (Get-Alias | Select-Object -Property Name).name
         }
     }
-
+    
     process {
         ForEach( $p in $Path) {
-            $item = Get-Item (Resolve-Path -Path $p).Path
-            If ( $item -is [System.Io.FileInfo] -and $item.Extension -in @('.ps1','.psm1') ) {
+            $item = get-item (resolve-path -path $p).path
+            If ( $item -is [system.io.FileInfo] -and $item.Extension -in @('.ps1','.psm1') ) {
                 Write-Verbose ("[FUFunction]Analyzing {0} ..." -f $item.FullName)
                 $t = [FUUtility]::GetRawASTFunction($item.FullName)
                 Foreach ( $RawASTFunction in $t ) {
                     If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
-                        [FUUtility]::GetFunction($RawASTFunction,$ToExclude,$item.FullName)
+                        [FUUtility]::GetFunction($RawASTFunction,$ToExclude,$item.FullName,$NoTitleCase)
                     } Else {
-                        [FUUtility]::GetFunction($RawASTFunction,$item.FullName)
+                        [FUUtility]::GetFunction($RawASTFunction,$item.FullName,$NoTitleCase)
                     }
                 }
             }
         }
     }
-
+    
     end {
     }
 }
@@ -296,86 +277,59 @@ Function Write-FUGraph {
     [CmdletBinding()]
     param (
         [Alias("FullName")]
-        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [string[]]$Path,
-
-        [Switch]$ExcludePSCmdlets,
-
+        [Parameter(ValueFromPipeline=$True)]
+        [FuFunction[]]$InputObject,
         [System.IO.FileInfo]$ExportPath,
-
         [ValidateSet('pdf',"png")]
         [String]$OutPutFormat,
-
         [ValidateSet('dot','circo','hierarchical')]
         [String]$LayoutEngine,
-
         [Switch]$ShowGraph,
-
         [Switch]$PassThru
     )
-
+    
     begin {
-        $results = @()
+        $Results = @()
     }
-
+    
     process {
-        ForEach( $p in $Path) {
-            $item = Get-Item (Resolve-Path -Path $p).Path
-            If ( $item -is [System.Io.FileInfo] -and $item.Extension -in @('.ps1','.psm1') ) {
-                If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
-                    $results += Find-FUFunction -Path $item -ExcludePSCmdlets
-                } Else {
-                    $results += Find-FUFunction -Path $item
-                }
-            }
-        }
-    }
 
+        Foreach ( $Function in $InputObject ) {
+            $Results += $Function
+        }
+        
+    }
+    
     end {
 
         $ExportAttrib = @{
-            DestinationPath = If ( $null -eq $PSBoundParameters['ExportPath']) {
-                                    $pwd.Path+'\'+[system.io.path]::GetRandomFileName().split('.')[0]+'.png'
-                                } Else {
-                                    $PSBoundParameters['ExportPath']
-                                }
-            OutPutFormat    = If ( $null -eq $PSBoundParameters['OutPutFormat']) {
-                                    'png'
-                                } Else {
-                                    $PSBoundParameters['OutPutFormat']
-                                }
-            LayoutEngine    = If ( $null -eq $PSBoundParameters['LayoutEngine']) {
-                                    'dot'
-                                } Else {
-                                    $PSBoundParameters['LayoutEngine']
-                                }
-            ShowGraph       = If ( $null -eq $PSBoundParameters['ShowGraph']) {
-                                    $False
-                                } Else {
-                                    $True
-                                }
+            DestinationPath = If ( $null -eq $PSBoundParameters['ExportPath']) {$pwd.Path+'\'+[system.io.path]::GetRandomFileName().split('.')[0]+'.png'} Else {$PSBoundParameters['ExportPath']}
+            OutPutFormat    = If ( $null -eq $PSBoundParameters['OutPutFormat']) {'png'} Else { $PSBoundParameters['OutPutFormat'] }
+            LayoutEngine    = If ( $null -eq $PSBoundParameters['LayoutEngine']) {'dot'} Else { $PSBoundParameters['LayoutEngine'] }
+            ShowGraph    = If ( $null -eq $PSBoundParameters['ShowGraph']) {$False} Else { $True }
         }
 
         $graph = graph depencies @{rankdir='LR'}{
-            Foreach ( $t in $results ) {
+            Foreach ( $t in $Results ) {
                 If ( $t.commands.count -gt 0 ) {
                         node -Name $t.name -Attributes @{Color='red'}
                 } Else {
                     node -Name $t.name -Attributes @{Color='green'}
                 }
-
+            
                 If ( $null -ne $t.commands) {
                     Foreach($cmdlet in $t.commands ) {
                         edge -from $t.name -to $cmdlet
                     }
                 }
             }
-        }
-
+        } 
+        
         $graph | export-PSGraph @ExportAttrib
 
-        If ( $PassThru ) {
+        If ( $PassThru ) { 
             $graph
         }
+        
     }
 }
