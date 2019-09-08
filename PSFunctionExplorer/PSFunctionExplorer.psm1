@@ -278,14 +278,18 @@ Function Write-FUGraph {
     param (
         [Alias("FullName")]
         [Parameter(ValueFromPipeline=$True)]
-        [FuFunction[]]$InputObject,
+        [FUFunction[]]$InputObject,
         [System.IO.FileInfo]$ExportPath,
+        [Parameter(ParameterSetName='Graph')]
         [ValidateSet('pdf',"png")]
         [String]$OutPutFormat,
+        [Parameter(ParameterSetName='Graph')]
         [ValidateSet('dot','circo','hierarchical')]
         [String]$LayoutEngine,
+        [Parameter(ParameterSetName='Graph')]
         [Switch]$ShowGraph,
-        [Switch]$PassThru
+        [Parameter(ParameterSetName='Dot')]
+        [Switch]$AsDot
     )
     
     begin {
@@ -323,12 +327,21 @@ Function Write-FUGraph {
                     }
                 }
             }
-        } 
-        
-        $graph | export-PSGraph @ExportAttrib
+        }
 
-        If ( $PassThru ) { 
-            $graph
+        Switch ( $PSCmdlet.ParameterSetName ) {
+            
+            "Graph" {
+                $graph | export-PSGraph @ExportAttrib
+            }
+
+            "Dot" {
+                If ( $PSBoundParameters['ExportPath'] ) {
+                    Out-File -InputObject $graph -FilePath $PSBoundParameters['ExportPath']
+                } Else {
+                    $graph
+                }
+            }
         }
         
     }
