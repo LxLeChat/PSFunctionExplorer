@@ -5,7 +5,20 @@ Function Write-FUGraph {
     .DESCRIPTION
         Generate dependecy graph for a function or a set of functions found in a ps1/psm1 file.
     .EXAMPLE
-        tbd
+        PS C:\> $x = Find-FUFunction .\PSFunctionExplorer.psm1
+        PS C:\> Write-FUGraph -InputObject $x -ExportPath c:\temp\fufuncion.png -outputformat png -ShowGraph
+
+        Répertoire : C:\temp
+
+        Mode                LastWriteTime         Length Name
+        ----                -------------         ------ ----
+        -a----       08/09/2019     15:08          71598 fufunction.png
+
+        Will Find all function(s) declarations in the psfunctionexplorer.psm1 file, and create a graph name fufunction.png. Then display it.
+    .EXAMPLE
+        PS C:\> Find-FUFunction .\PSFunctionExplorer.psm1 | Write-FUGraph -ExportPath c:\temp\fufuncion.png -outputformat png -ShowGraph
+
+        Will Find all function(s) declarations in the psfunctionexplorer.psm1 file, and create a graph name fufunction.png. Then display it.
     .INPUTS
         FullName Path. Accepts pipeline inputs.
     .OUTPUTS
