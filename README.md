@@ -75,13 +75,12 @@ PSFunctionExplore.psm1 file:..
 * Black node(s): External function, in this example: graph, node, edge and export-psgraph are imported function from PSGRAPH...
 
 #### Write-FUGraph Parameters
-* ```-Path``` fullpath of a ps1/psm1 file
-* ```-ExcludePSCmdlets``` exlcude default cmdlts and aliases
+* ```-InputObject``` Takes ```FuFunction``` Objects generated with ```Find-FUFunction```
 * ```-ExportPath``` FullName of the export file that will be generated. If not specified, a random filename in the current directory will be used
 * ```-OutPutFormat``` File output format available @ the moment ```pdf, png```. Default is ```png```
 * ```-LayoutEngine``` Layout engine used by graphviz to generate the graph. Available @ the moment ```dot, circo, hierarchical```. Default ```dot```
 * ```-ShowGraph``` Display the graph when it's generated
-* ```-PassThru``` Display graph data. Can be used on http://www.webgraphviz.com/ or http://viz-js.com/ for example. Works also with Gephi. You need to save the graph data in a dot file. For example i tried it for dbatools ... more thant 700 functions ...! 
+* ```-AsDot``` Display graph data. Can be used on http://www.webgraphviz.com/ or http://viz-js.com/ for example. Works also with Gephi. You need to save the graph data in a dot file. For example i tried it for dbatools ... more thant 700 functions ...! 
 
 # Why i did it
 I've tasked to study a huuuuuuge module, with no comment, no documentation etc... It helped me understand how each functions interacts with one another.
