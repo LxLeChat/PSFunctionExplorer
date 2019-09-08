@@ -4,40 +4,61 @@ class FUFunction {
     $Path
     hidden $RawFunctionAST
 
-    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$Path) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$Path,[Bool]$TitleCase) {
         $this.RawFunctionAST = $Raw
-        $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
-        $this.GetCommands()
+        $this.GetCommands($TitleCase)
+
+        If ( $TitleCase ) {
+            $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)    
+        } Else {
+            $this.name = $this.RawFunctionAST.name
+        }
     }
 
-    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList,$Path) {
+    FUFunction ([System.Management.Automation.Language.FunctionDefinitionAST]$Raw,$ExclusionList,$Path,[Bool]$TitleCase) {
         $this.RawFunctionAST = $Raw
-        $this.Name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)
         $this.Path = $path
-        $this.GetCommands($ExclusionList)
+        $this.GetCommands($ExclusionList,$TitleCase)
+
+        If ( $TitleCase ) {
+            $this.name = [FUUtility]::ToTitleCase($this.RawFunctionAST.name)    
+        } Else {
+            $this.name = $this.RawFunctionAST.name
+        }
     }
 
-    hidden GetCommands () {
+    hidden GetCommands ([Bool]$TitleCase) {
 
         $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
             ## si elle existe deja, on ajotue juste à ces commands
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
-                $Command = [FUUtility]::ToTitleCase($_)
+                
+                If ( $TitleCase ) {
+                    $Command = [FUUtility]::ToTitleCase($_)
+                } Else {
+                    $Command = $_
+                }
+                
                 $this.Commands.Add($Command)
             })
         }
     }
 
     ## Overload
-    hidden GetCommands ($ExclusionList) {
+    hidden GetCommands ($ExclusionList,[Bool]$TitleCase) {
 
         $t = $this.RawFunctionAST.findall({$args[0] -is [System.Management.Automation.Language.CommandAst]},$true)
         If ( $t.Count -gt 0 ) {
             ($t.GetCommandName() | Select-Object -Unique).Foreach({
                 $Command = [FUUtility]::ToTitleCase($_)
                 If ( $ExclusionList -notcontains $Command) {
+                    If ( $TitleCase ) {
+                        $Command = [FUUtility]::ToTitleCase($_)
+                    } Else {
+                        $Command = $_
+                    }
                     $this.Commands.Add($Command)
                 }
             })
@@ -68,13 +89,13 @@ Class FUUtility {
     }
 
     ## GetFunction, return [FuFunction]
-    [FUFunction] Static GetFunction($RawASTFunction,$path){
-        return [FUFunction]::New($RawASTFunction,$path)
+    [FUFunction] Static GetFunction($RawASTFunction,$path,$TitleCase){
+        return [FUFunction]::New($RawASTFunction,$path,$TitleCase)
     }
 
     ## GetFunctions Overload, with ExclustionList, return [FuFunction]
-    [FUFunction] Static GetFunction($RawASTFunction,$Exculde,$path){
-        return [FUFunction]::New($RawASTFunction,$Exculde,$path)
+    [FUFunction] Static GetFunction($RawASTFunction,$Exculde,$path,$TitleCase){
+        return [FUFunction]::New($RawASTFunction,$Exculde,$path,$TitleCase)
     }
 
     ## SaveTofile in current path

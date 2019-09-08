@@ -16,33 +16,31 @@ Function Write-FUGraph {
     [CmdletBinding()]
     param (
         [Alias("FullName")]
-        [Parameter(ValueFromPipeline=$True,Position=1,ValueFromPipelineByPropertyName=$True)]
-        [string[]]$Path,
-        [Switch]$ExcludePSCmdlets,
+        [Parameter(ValueFromPipeline=$True)]
+        [FUFunction[]]$InputObject,
         [System.IO.FileInfo]$ExportPath,
+        [Parameter(ParameterSetName='Graph')]
         [ValidateSet('pdf',"png")]
         [String]$OutPutFormat,
+        [Parameter(ParameterSetName='Graph')]
         [ValidateSet('dot','circo','hierarchical')]
         [String]$LayoutEngine,
+        [Parameter(ParameterSetName='Graph')]
         [Switch]$ShowGraph,
-        [Switch]$PassThru
+        [Parameter(ParameterSetName='Dot')]
+        [Switch]$AsDot
     )
     
     begin {
-        $results = @()
+        $Results = @()
     }
     
     process {
-        ForEach( $p in $Path) {
-            $item = get-item (resolve-path -path $p).path
-            If ( $item -is [system.io.FileInfo] -and $item.Extension -in @('.ps1','.psm1') ) {
-                If ( $PSBoundParameters['ExcludePSCmdlets'] ) {
-                    $results += Find-FUFunction -Path $item -ExcludePSCmdlets
-                } Else {
-                    $results += Find-FUFunction -Path $item
-                }
-            }
+
+        Foreach ( $Function in $InputObject ) {
+            $Results += $Function
         }
+        
     }
     
     end {
@@ -55,7 +53,7 @@ Function Write-FUGraph {
         }
 
         $graph = graph depencies @{rankdir='LR'}{
-            Foreach ( $t in $results ) {
+            Foreach ( $t in $Results ) {
                 If ( $t.commands.count -gt 0 ) {
                         node -Name $t.name -Attributes @{Color='red'}
                 } Else {
@@ -68,12 +66,22 @@ Function Write-FUGraph {
                     }
                 }
             }
-        } 
-        
-        $graph | export-PSGraph @ExportAttrib
-
-        If ( $PassThru ) { 
-            $graph
         }
+
+        Switch ( $PSCmdlet.ParameterSetName ) {
+            
+            "Graph" {
+                $graph | export-PSGraph @ExportAttrib
+            }
+
+            "Dot" {
+                If ( $PSBoundParameters['ExportPath'] ) {
+                    Out-File -InputObject $graph -FilePath $PSBoundParameters['ExportPath']
+                } Else {
+                    $graph
+                }
+            }
+        }
+        
     }
 }
