@@ -26,7 +26,7 @@ Function Write-FUGraph {
     .NOTES
         First Draft. For the moment the function only output graphviz datas. Soon you ll be able to generate a nice graph as a png, pdf ...
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = "Graph")]
     param (
         [Alias("FullName")]
         [Parameter(ValueFromPipeline=$True)]
